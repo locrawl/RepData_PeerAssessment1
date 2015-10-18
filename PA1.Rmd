@@ -65,8 +65,43 @@ interval[max, ]
 
 ## Imputing missing values
 ```{r missingvalues, echo=TRUE}
+## Calculate the number of NAs
+sum(is.na(activity_pre))
 
+## Make a copy of activity_pre
+activity_post <- activity_pre
+
+## Replace NAs with imputed data
+# For every row in activity_pre
+for (i in 1:nrow(activity_post)){
+  # If the row contains NA data in steps
+  if (is.na(activity_post$steps[i])){
+    # Replace the NA with the mean in the 5 minute interval
+    # that was already calculated in the interval dataframe
+    interval_val <- activity_post$interval[i]
+    row <- which(interval$interval == interval_val)
+    steps_val <- interval$steps[row]
+    activity_post$steps[i] <- steps_val
+  }
+}
+
+## Recalculate the total number of daily steps with new data
+imputed_daily_steps <- aggregate(steps ~ date, activity_post, sum)
+head(imputed_daily_steps)
+
+## Make a histogram of step frequency with imputed data
+hist(imputed_daily_steps$steps, main="Total Daily Steps (NAs Imputed)", 
+     xlab="Daily Steps")
+
+# Mean and median of imputed data
+mean(imputed_daily_steps$steps)
+median(imputed_daily_steps$steps)
 ```
+
+**WITH NAs = Mean: 10,766.19 - Median: 10,765**
+**IMPUTED = Mean: 10,766.19 - Median: 10,766.19**
+
+**Summary: With inputed data, the mean remains unchanged but the median rose slightly**
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
