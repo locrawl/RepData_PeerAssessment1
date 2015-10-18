@@ -3,8 +3,8 @@ title: "Reproducible Research: Peer Assessment 1"
 author: "Flavius Popan"
 date: "October 15, 2015"
 output: 
-  html_document:
-    keep_md: true
+html_document:
+keep_md: true
 ---
 
 
@@ -14,13 +14,31 @@ output:
 if (!file.exists("activity.csv")) {unzip("activity.zip")}
 
 ## Load the csv file as a dataset
-activity <- read.csv("activity.csv")
+activity_pre <- read.csv("activity.csv")
+
+## Remove the NAs
+activity <- activity_pre[with(activity_pre,{!(is.na(steps))}),]
 ```
 
 
 ## What is mean total number of steps taken per day?
 ```{r totalsteps, echo=TRUE}
+## Calculate total number of steps taken daily
+daily_steps <- aggregate(activity$steps,by=list(activity$date),sum)
 
+## Rename the columns to something more useful
+names(daily_steps) <- c("date", "steps")
+
+## Display the data
+head(daily_steps)
+
+## Make a histogram of step frequency
+hist(daily_steps$steps, main="Total Daily Steps", 
+     xlab="Daily Steps")
+
+## Display the mean & median steps
+mean(daily_steps$steps)
+median(daily_steps$steps)
 ```
 
 
