@@ -1,16 +1,20 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-author: "Flavius Popan"
-date: "October 15, 2015"
-keep_md: true
----
+# Reproducible Research: Peer Assessment 1
+Flavius Popan  
+October 15, 2015  
 
 
 ## Loading and preprocessing the data
-```{r preprocess, echo=TRUE}
+
+```r
 ## ggplot2 import
 library(ggplot2)
+```
 
+```
+## Warning: package 'ggplot2' was built under R version 3.2.2
+```
+
+```r
 ## Extract the csv from the zip if it hasn't been done already
 if (!file.exists("activity.csv")) {unzip("activity.zip")}
 
@@ -23,7 +27,8 @@ activity <- activity_pre[with(activity_pre,{!(is.na(steps))}),]
 
 
 ## What is mean total number of steps taken per day?
-```{r totalsteps, echo=TRUE}
+
+```r
 ## Calculate total number of steps taken daily
 daily_steps <- aggregate(activity$steps,by=list(activity$date),sum)
 
@@ -32,20 +37,48 @@ names(daily_steps) <- c("date", "steps")
 
 ## Display the data
 head(daily_steps)
+```
 
+```
+##         date steps
+## 1 2012-10-02   126
+## 2 2012-10-03 11352
+## 3 2012-10-04 12116
+## 4 2012-10-05 13294
+## 5 2012-10-06 15420
+## 6 2012-10-07 11015
+```
+
+```r
 ## Make a histogram of step frequency
 hist(daily_steps$steps, main="Total Daily Steps", 
      xlab="Daily Steps")
+```
 
+![](PA1_template_files/figure-html/totalsteps-1.png) 
+
+```r
 ## Display the mean & median steps
 mean(daily_steps$steps)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(daily_steps$steps)
+```
+
+```
+## [1] 10765
 ```
 
 **Mean: 10,766.19 - Median: 10,765**
 
 ## What is the average daily activity pattern?
-```{r activitypattern, echo=TRUE}
+
+```r
 ## Aggregate the steps into intervals by mean
 interval <- aggregate(steps ~ interval, activity, mean)
 
@@ -53,7 +86,11 @@ interval <- aggregate(steps ~ interval, activity, mean)
 plot(interval$interval, interval$steps, type='l', 
      main="Average Steps Across All Days", xlab="Interval", 
      ylab="Average Steps")
+```
 
+![](PA1_template_files/figure-html/activitypattern-1.png) 
+
+```r
 ## Get max step row
 max <- which.max(interval$steps)
 
@@ -61,14 +98,26 @@ max <- which.max(interval$steps)
 interval[max, ]
 ```
 
+```
+##     interval    steps
+## 104      835 206.1698
+```
+
 **Interval 835 has the highest number of steps on average (206.16)**
 
 
 ## Imputing missing values
-```{r missingvalues, echo=TRUE}
+
+```r
 ## Calculate the number of NAs
 sum(is.na(activity_pre))
+```
 
+```
+## [1] 2304
+```
+
+```r
 ## Make a copy of activity_pre
 activity_post <- activity_pre
 
@@ -89,14 +138,41 @@ for (i in 1:nrow(activity_post)){
 ## Recalculate the total number of daily steps with new data
 imputed_daily_steps <- aggregate(steps ~ date, activity_post, sum)
 head(imputed_daily_steps)
+```
 
+```
+##         date    steps
+## 1 2012-10-01 10766.19
+## 2 2012-10-02   126.00
+## 3 2012-10-03 11352.00
+## 4 2012-10-04 12116.00
+## 5 2012-10-05 13294.00
+## 6 2012-10-06 15420.00
+```
+
+```r
 ## Make a histogram of step frequency with imputed data
 hist(imputed_daily_steps$steps, main="Total Daily Steps (NAs Imputed)", 
      xlab="Daily Steps")
+```
 
+![](PA1_template_files/figure-html/missingvalues-1.png) 
+
+```r
 ## Mean and median of imputed data
 mean(imputed_daily_steps$steps)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(imputed_daily_steps$steps)
+```
+
+```
+## [1] 10766.19
 ```
 
 **WITH NAs = Mean: 10,766.19 - Median: 10,765**
@@ -106,7 +182,8 @@ median(imputed_daily_steps$steps)
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
-```{r weekends, echo=TRUE}
+
+```r
 ## Create a new column to store weekday/weekend information
 activity_post['day_type'] <- weekdays(as.Date(activity_post$date))
 activity_post$day_type[activity_post$day_type  %in% c('Saturday','Sunday')] <- "weekend"
@@ -130,6 +207,8 @@ qplot(interval,
       main = "") +
     facet_wrap(~ day_type, ncol = 1)
 ```
+
+![](PA1_template_files/figure-html/weekends-1.png) 
 
 **More steps are taken earlier in the day on weekdays but more steps are taken
   later in the evening on weekends**

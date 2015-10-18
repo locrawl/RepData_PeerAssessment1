@@ -1,0 +1,137 @@
+---
+title: "Reproducible Research: Peer Assessment 1"
+author: "Flavius Popan"
+date: "October 15, 2015"
+output: 
+  html_document:
+    keep_md: true
+---
+
+
+## Loading and preprocessing the data
+```{r preprocess, echo=TRUE}
+## ggplot2 import
+library(ggplot2)
+
+## Extract the csv from the zip if it hasn't been done already
+if (!file.exists("activity.csv")) {unzip("activity.zip")}
+
+## Load the csv file as a dataset
+activity_pre <- read.csv("activity.csv")
+
+## Remove the NAs
+activity <- activity_pre[with(activity_pre,{!(is.na(steps))}),]
+```
+
+
+## What is mean total number of steps taken per day?
+```{r totalsteps, echo=TRUE}
+## Calculate total number of steps taken daily
+daily_steps <- aggregate(activity$steps,by=list(activity$date),sum)
+
+## Rename the columns to something more useful
+names(daily_steps) <- c("date", "steps")
+
+## Display the data
+head(daily_steps)
+
+## Make a histogram of step frequency
+hist(daily_steps$steps, main="Total Daily Steps", 
+     xlab="Daily Steps")
+
+## Display the mean & median steps
+mean(daily_steps$steps)
+median(daily_steps$steps)
+```
+
+**Mean: 10,766.19 - Median: 10,765**
+
+## What is the average daily activity pattern?
+```{r activitypattern, echo=TRUE}
+## Aggregate the steps into intervals by mean
+interval <- aggregate(steps ~ interval, activity, mean)
+
+## Plot time series
+plot(interval$interval, interval$steps, type='l', 
+     main="Average Steps Across All Days", xlab="Interval", 
+     ylab="Average Steps")
+
+## Get max step row
+max <- which.max(interval$steps)
+
+## Find interval from max
+interval[max, ]
+```
+
+**Interval 835 has the highest number of steps on average (206.16)**
+
+
+## Imputing missing values
+```{r missingvalues, echo=TRUE}
+## Calculate the number of NAs
+sum(is.na(activity_pre))
+
+## Make a copy of activity_pre
+activity_post <- activity_pre
+
+## Replace NAs with imputed data
+# For every row in activity_pre
+for (i in 1:nrow(activity_post)){
+    # If the row contains NA data in steps
+    if (is.na(activity_post$steps[i])){
+        # Replace the NA with the mean in the 5 minute interval
+        # that was already calculated in the interval dataframe
+        interval_val <- activity_post$interval[i]
+        row <- which(interval$interval == interval_val)
+        steps_val <- interval$steps[row]
+        activity_post$steps[i] <- steps_val
+    }
+}
+
+## Recalculate the total number of daily steps with new data
+imputed_daily_steps <- aggregate(steps ~ date, activity_post, sum)
+head(imputed_daily_steps)
+
+## Make a histogram of step frequency with imputed data
+hist(imputed_daily_steps$steps, main="Total Daily Steps (NAs Imputed)", 
+     xlab="Daily Steps")
+
+## Mean and median of imputed data
+mean(imputed_daily_steps$steps)
+median(imputed_daily_steps$steps)
+```
+
+**WITH NAs = Mean: 10,766.19 - Median: 10,765**
+**IMPUTED = Mean: 10,766.19 - Median: 10,766.19**
+
+**Summary: With inputed data, the mean remains unchanged but the median rose slightly**
+
+
+## Are there differences in activity patterns between weekdays and weekends?
+```{r weekends, echo=TRUE}
+## Create a new column to store weekday/weekend information
+activity_post['day_type'] <- weekdays(as.Date(activity_post$date))
+activity_post$day_type[activity_post$day_type  %in% c('Saturday','Sunday')] <- "weekend"
+activity_post$day_type[activity_post$day_type != "weekend"] <- "weekday"
+
+## Make day_type into a factor
+activity_post$day_type <- as.factor(activity_post$day_type)
+
+## Calculate average aggregate steps
+imputed_interval <- aggregate(steps ~ interval + day_type, 
+                                          activity_post, mean)
+
+## Make a plot to show differences in day_type over averaged intervals
+qplot(interval, 
+      steps, 
+      data = imputed_interval, 
+      type = 'l', 
+      geom=c("line"),
+      xlab = "Interval", 
+      ylab = "Steps", 
+      main = "") +
+    facet_wrap(~ day_type, ncol = 1)
+```
+
+**More steps are taken earlier in the day on weekdays but more steps are taken
+  later in the evening on weekends**
