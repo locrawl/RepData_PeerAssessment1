@@ -41,15 +41,30 @@ mean(daily_steps$steps)
 median(daily_steps$steps)
 ```
 
+**Mean: 10,766.19 - Median: 10,765**
 
 ## What is the average daily activity pattern?
-```{r}
+```{r activitypattern, echo=TRUE}
+## Aggregate the steps into intervals by mean
+interval <- aggregate(steps ~ interval, activity, mean)
 
+## Plot time series
+plot(interval$interval, interval$steps, type='l', 
+     main="Average Steps Across All Days", xlab="Interval", 
+     ylab="Average Steps")
+
+# Get max step row
+max <- which.max(interval$steps)
+
+# Find interval from max
+interval[max, ]
 ```
+
+**Interval 835 has the highest number of steps on average (206.16)**
 
 
 ## Imputing missing values
-```{r}
+```{r missingvalues, echo=TRUE}
 
 ```
 
